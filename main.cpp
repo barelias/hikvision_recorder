@@ -42,6 +42,8 @@ int donwload_file(char *addr,
 
     NET_DVR_TIME struStartTime, struStopTime;
 
+    printf ("%d %d %d %d %d\n", port, begin_year, begin_second, end_year, end_second);
+
     struStartTime.dwYear = begin_year;
     struStartTime.dwMonth = begin_month;
     struStartTime.dwDay = begin_day;
@@ -102,18 +104,12 @@ int donwload_file(char *addr,
 int main(int argc, char *argv[])
 {
 
-
-    for (int i = 0; i < argc; i++) {
-        printf ("%s\n", argv[i]);
-    }
-
     return donwload_file(
-                argv[0], 
-                atoi(argv[1]), 
-                argv[2], 
+                argv[1], 
+                atoi(argv[2]), 
                 argv[3], 
-                argv[4],
-                atoi(argv[5]),
+                argv[4], 
+                argv[5],
                 atoi(argv[6]),
                 atoi(argv[7]),
                 atoi(argv[8]),
@@ -124,7 +120,8 @@ int main(int argc, char *argv[])
                 atoi(argv[13]),
                 atoi(argv[14]),
                 atoi(argv[15]),
-                atoi(argv[16])
+                atoi(argv[16]),
+                atoi(argv[17])
                 );
 }
 
