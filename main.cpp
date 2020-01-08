@@ -62,18 +62,21 @@ int donwload_file(char *addr,
     hPlayback = NET_DVR_GetFileByTime(lUserID, 1, &struStartTime, &struStopTime, filepath);
     if (hPlayback < 0)
     {
-        printf("NET_DVR_GetFileByTime fail,last error %d\n", NET_DVR_GetLastError());
+
+        int error = NET_DVR_GetLastError();
+        printf("NET_DVR_GetFileByTime fail,last error %d\n", error);
         NET_DVR_Logout(lUserID);
         NET_DVR_Cleanup();
-        return 0;
+        return error;
     }
 
     if (!NET_DVR_PlayBackControl(hPlayback, NET_DVR_PLAYSTART, 0, NULL))
     {
-        printf("play back control failed [%d]\n", NET_DVR_GetLastError());
+        int error = NET_DVR_GetLastError();
+        printf("play back control failed [%d]\n", error);
         NET_DVR_Logout(lUserID);
         NET_DVR_Cleanup();
-        return 0;
+        return error;
     }
     int nPos = 0;
     for (nPos = 0; nPos < 100 && nPos >= 0; nPos = NET_DVR_GetDownloadPos(hPlayback))
@@ -82,17 +85,20 @@ int donwload_file(char *addr,
     }
     if (!NET_DVR_StopGetFile(hPlayback))
     {
-        printf("failed to stop get file [%d]\n", NET_DVR_GetLastError());
+        int error = NET_DVR_GetLastError();
+        printf("failed to stop get file [%d]\n", error);
         NET_DVR_Logout(lUserID);
         NET_DVR_Cleanup();
-        return 0;
+        return error;
     }
     if (nPos < 0 || nPos > 100)
     {
-        printf("download err [%d]\n", NET_DVR_GetLastError());
+        
+        int error = NET_DVR_GetLastError();
+        printf("download err [%d]\n", error);
         NET_DVR_Logout(lUserID);
         NET_DVR_Cleanup();
-        return 0;
+        return error;
     }
     //Logout
     NET_DVR_Logout(lUserID);
