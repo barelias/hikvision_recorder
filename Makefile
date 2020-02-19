@@ -1,6 +1,6 @@
 HCNetSDKFLAGS=-L./lib -L./lib/HCNetSDKCom -lhcnetsdk -L./lib -lhpr -lHCCore -lHCCoreDevCfg -lStreamTransClient -lSystemTransform -lHCPreview -lHCAlarm -lHCGeneralCfgMgr -lHCIndustry -lHCPlayBack -lHCVoiceTalk -lanalyzedata -lHCDisplay
 
-all: main
+all: hikvision_tool
  
-main:
-	g++ main.cpp -o main.o $(HCNetSDKFLAGS)
+hikvision_tool:
+	g++ hikvision_lib.cpp -o hikvision_tool $(HCNetSDKFLAGS)
