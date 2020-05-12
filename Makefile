@@ -4,3 +4,6 @@ all: hikvision_tool
  
 hikvision_tool:
 	g++ hikvision_lib.cpp -o hikvision_tool $(HCNetSDKFLAGS)
+
+rm:
+	rm hikvision_tool
