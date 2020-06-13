@@ -6,7 +6,7 @@
 
 using namespace std;
 
-int donwload_file(char *addr, 
+long int donwload_file(char *addr, 
                   int port, 
                   char *user, 
                   char *passwd, 
@@ -33,7 +33,7 @@ int donwload_file(char *addr,
     NET_DVR_DEVICEINFO_V30 struDeviceInfo;
     
     lUserID = NET_DVR_Login_V30(addr, port, user, passwd, &struDeviceInfo);
-
+    printf ("Trying to log in\n");
     if (lUserID < 0)
     {
         int error = NET_DVR_GetLastError();
@@ -41,7 +41,6 @@ int donwload_file(char *addr,
         NET_DVR_Cleanup();
         return error;
     }
-
     printf ("Login Succesful\n");
     NET_DVR_TIME struStartTime, struStopTime;
 
@@ -60,16 +59,14 @@ int donwload_file(char *addr,
     struStopTime.dwMinute = end_minute;
     struStopTime.dwSecond = end_second;
 
-    printf("%d %d %d %d %d %d %d %d %d %d %d %d\n", struStartTime.dwYear, struStartTime.dwMonth, struStartTime.dwDay, struStartTime.dwHour, struStartTime.dwMinute, struStartTime.dwSecond, struStopTime.dwYear, struStopTime.dwMonth, struStopTime.dwDay, struStopTime.dwHour, struStopTime.dwMinute, struStopTime.dwSecond, struStartTime.dwYear, struStartTime.dwMonth, struStartTime.dwDay, struStartTime.dwHour, struStartTime.dwMinute, struStartTime.dwSecond, struStopTime.dwYear, struStopTime.dwMonth, struStopTime.dwDay, struStopTime.dwHour, struStopTime.dwMinute, struStopTime.dwSecond);
-    
-    printf("%d %s\n", lUserID, filepath);
+    // printf("%d %d %d %d %d %d %d %d %d %d %d %d\n", struStartTime.dwYear, struStartTime.dwMonth, struStartTime.dwDay, struStartTime.dwHour, struStartTime.dwMinute, struStartTime.dwSecond, struStopTime.dwYear, struStopTime.dwMonth, struStopTime.dwDay, struStopTime.dwHour, struStopTime.dwMinute, struStopTime.dwSecond, struStartTime.dwYear, struStartTime.dwMonth, struStartTime.dwDay, struStartTime.dwHour, struStartTime.dwMinute, struStartTime.dwSecond, struStopTime.dwYear, struStopTime.dwMonth, struStopTime.dwDay, struStopTime.dwHour, struStopTime.dwMinute, struStopTime.dwSecond);
+    // printf("%d %s\n", lUserID, filepath);
     int hPlayback;
     hPlayback = NET_DVR_GetFileByTime(lUserID, 1, &struStartTime, &struStopTime, filepath);
     if (hPlayback < 0)
     {
 
         int error = NET_DVR_GetLastError();
-        printf("NET_DVR_GetFileByTime fail,last error %d\n", error);
         NET_DVR_Logout(lUserID);
         NET_DVR_Cleanup();
         return error;
@@ -78,12 +75,12 @@ int donwload_file(char *addr,
     if (!NET_DVR_PlayBackControl(hPlayback, NET_DVR_PLAYSTART, 0, NULL))
     {
         int error = NET_DVR_GetLastError();
-        printf("play back control failed [%d]\n", error);
         NET_DVR_Logout(lUserID);
         NET_DVR_Cleanup();
         return error;
     }
     int nPos = 0;
+
     for (nPos = 0; nPos < 100 && nPos >= 0; nPos = NET_DVR_GetDownloadPos(hPlayback))
     {
         sleep(5); //millisecond
@@ -96,13 +93,16 @@ int donwload_file(char *addr,
         NET_DVR_Cleanup();
         return error;
     }
+
+    return 12334;
     if (nPos < 0 || nPos > 100)
     {
-        
         int error = NET_DVR_GetLastError();
+        if (nPos == 200) error=4000;
         printf("download err [%d]\n", error);
         NET_DVR_Logout(lUserID);
         NET_DVR_Cleanup();
+
         return error;
     }
     //Logout
