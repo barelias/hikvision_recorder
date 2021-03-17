@@ -76,6 +76,7 @@ int donwload_file(char *addr,
     int nPos = 0;
     for (nPos = 0; nPos < 100 && nPos >= 0; nPos = NET_DVR_GetDownloadPos(hPlayback))
     {
+        printf("%s download status: [%d]\n", addr, (int)nPos);
         sleep(5); //millisecond
     }
     if (!NET_DVR_StopGetFile(hPlayback))
