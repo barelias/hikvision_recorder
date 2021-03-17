@@ -72,6 +72,8 @@ long int donwload_file(char *addr,
         return error;
     }
 
+    printf ("Got playback file\n");
+
     if (!NET_DVR_PlayBackControl(hPlayback, NET_DVR_PLAYSTART, 0, NULL))
     {
         int error = NET_DVR_GetLastError();
@@ -79,10 +81,13 @@ long int donwload_file(char *addr,
         NET_DVR_Cleanup();
         return error;
     }
+
+    printf ("Playback control set\n");
     int nPos = 0;
 
     for (nPos = 0; nPos < 100 && nPos >= 0; nPos = NET_DVR_GetDownloadPos(hPlayback))
     {
+        printf("%s download status: [%d]\n", addr, (int)nPos);
         sleep(5); //millisecond
     }
     if (!NET_DVR_StopGetFile(hPlayback))
