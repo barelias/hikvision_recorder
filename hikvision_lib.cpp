@@ -98,9 +98,10 @@ long int donwload_file(char *addr,
         NET_DVR_Cleanup();
         return error;
     }
-
-    return 12334;
-    if (nPos < 0 || nPos > 100)
+    
+    printf("%d\n", nPos);
+    
+    if (nPos != 100)
     {
         int error = NET_DVR_GetLastError();
         if (nPos == 200) error=4000;
