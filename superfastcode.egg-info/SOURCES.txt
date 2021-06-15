@@ -1,0 +1,8 @@
+README.md
+pyproject.toml
+setup.py
+src/hikvisionmodule.cpp
+superfastcode.egg-info/PKG-INFO
+superfastcode.egg-info/SOURCES.txt
+superfastcode.egg-info/dependency_links.txt
+superfastcode.egg-info/top_level.txt

@@ -2,7 +2,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <cstring>
-#include "incEn/HCNetSDK.h"
+#include "src/incEn/HCNetSDK.h"
 
 using namespace std;
 

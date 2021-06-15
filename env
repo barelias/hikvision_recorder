@@ -1,1 +1,2 @@
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PWD/lib:$PWD/lib/HCNetSDKCom
+export CPPFLAGS=-I/usr/include/python3.8/
