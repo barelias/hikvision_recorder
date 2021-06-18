@@ -23,7 +23,7 @@ HikvisionDownloader::HikvisionDownloader(
 
 std::string NetDVRTime::str() {
     std::ostringstream res;
-    res << dvr_time.dwYear << "/" << (int) dvr_time.dwMonth << "/" << dvr_time.dwDay << " " << dvr_time.dwHour << ":" << dvr_time.dwMinute << ":" << dvr_time.dwSecond;
+    res << dvr_time.dwYear << "-" << (int) dvr_time.dwMonth << "-" << dvr_time.dwDay << "T" << dvr_time.dwHour << ":" << dvr_time.dwMinute << ":" << dvr_time.dwSecond;
     return res.str();
 }
 

@@ -57,7 +57,7 @@ setup(
     classifiers=[
         "License :: OSI Approved :: MIT License",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.8.7",
+        "Programming Language :: Python :: 3.8",
     ],
     package_dir={'': 'src'},
     packages=['hikvision_api'],
