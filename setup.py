@@ -1,47 +1,65 @@
-from distutils.core import setup, Extension
+from setuptools import setup, Extension
 import os
+import pathlib
 
-os.environ
+HERE = pathlib.Path(__file__).parent
+README = (HERE / "README.md").read_text()
 
-setup (name = 'Hikvision Recorder',
-        version = '1.0',
-        description = 'This is a demo package',
-        ext_modules = [
-            Extension(
-                'download_file', 
-                sources = ['download_file.cpp'],
-                library_dirs = [
-                    './lib/HCNetSDKCom',
-                    './lib/libz.so.1',
-                    './lib/libssl.so',
-                    './lib/libcrypto.so',
-                    './lib/libz.so',
-                    './lib/libSuperRender.so',
-                    './lib/libAudioRender.so', 
-                    './lib/libHCCore.so',
-                    './lib/libcrypto.so.1.0.0',
-                    './lib/libPlayCtrl.so',
-                    './lib/libNPQos.so',
-                    './lib/libssl.so.1.0.0',
-                    './lib/libhcnetsdk.so',
-                    './lib/libopenal.so.1',
-                    './lib/libhpr.so',
-                    './lib/HCNetSDKCom/libHCIndustry.so',
-                    './lib/HCNetSDKCom/libiconv.so.2',
-                    './lib/HCNetSDKCom/libHCPreview.so',
-                    './lib/HCNetSDKCom/libHCDisplay.so',
-                    './lib/HCNetSDKCom/libHCPlayBack.so',
-                    './lib/HCNetSDKCom/libanalyzedata.so',
-                    './lib/HCNetSDKCom/libHCVoiceTalk.so',
-                    './lib/HCNetSDKCom/libHCCoreDevCfg.so',
-                    './lib/HCNetSDKCom/libStreamTransClient.so',
-                    './lib/HCNetSDKCom/libHCAlarm.so',
-                    './lib/HCNetSDKCom/libiconv2.so',
-                    './lib/HCNetSDKCom/libSystemTransform.so', 
-                    './lib/HCNetSDKCom/libHCGeneralCfgMgr.so'
-                ],  # path to .a or .so file(s)
-                extra_compile_args=['-lhcnetsdk', '-lhpr', '-lHCCore', '-lHCCoreDevCfg', '-lStreamTransClient', '-lSystemTransform', '-lHCPreview', '-lHCAlarm', '-lHCGeneralCfgMgr', '-lHCIndustry', '-lHCPlayBack', '-lHCVoiceTalk', '-lanalyzedata', '-lHCDisplay'],
-                language='c++11',
-                )
-            ]
-      )
+sfc_module = Extension(
+    'hikvision_api.downloader', 
+    sources = [
+        'src/downloader/hikvision_download_tool.cpp',
+        'src/downloader/hikvisionmodule.cpp'
+    ],
+    include_dirs=[
+        '/usr/local/include',
+        '/usr/include/python3.8'
+    ],
+    library_dirs=[
+        '/usr/local/lib/boost',
+        os.path.join(os.path.split(os.path.abspath(__file__))[0], 'lib'),
+        os.path.join(os.path.split(os.path.abspath(__file__))[0], 'lib/HCNetSDKCom')
+    ],
+    runtime_library_dirs=[
+        os.path.join(os.path.split(os.path.abspath(__file__))[0], 'lib'),
+        os.path.join(os.path.split(os.path.abspath(__file__))[0], 'lib/HCNetSDKCom'),
+        '/usr/local/lib/boost'
+    ],
+    libraries=[
+        'boost_python38',
+        'boost_filesystem',
+        'hcnetsdk',
+        'hpr',
+        'HCCore',
+        'HCCoreDevCfg',
+        'StreamTransClient',
+        'SystemTransform',
+        'HCPreview',
+        'HCAlarm',
+        'HCGeneralCfgMgr',
+        'HCIndustry',
+        'HCPlayBack',
+        'HCVoiceTalk',
+        'analyzedata',
+        'HCDisplay'
+    ]
+)
+
+setup(
+    name='hikvision-api',    
+    version='1.0.0',
+    description='Hikvision Module Package',
+    long_description_content_type="text/markdown",
+    url="https://github.com/dinthea/hikvision_recorder",
+    author="Iago Elias",
+    author_email="iago@sflabs.com.br",
+    license="MIT",
+    classifiers=[
+        "License :: OSI Approved :: MIT License",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.8.7",
+    ],
+    package_dir={'': 'src'},
+    packages=['hikvision_api'],
+    ext_modules=[sfc_module]
+)
