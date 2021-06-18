@@ -6,6 +6,7 @@
 #include <iostream>
 #include <sstream>
 #include <list>
+#include <iomanip>
 
 HikvisionDownloader::HikvisionDownloader(
     std::string addr,
@@ -23,7 +24,13 @@ HikvisionDownloader::HikvisionDownloader(
 
 std::string NetDVRTime::str() {
     std::ostringstream res;
-    res << dvr_time.dwYear << "-" << (int) dvr_time.dwMonth << "-" << dvr_time.dwDay << "T" << dvr_time.dwHour << ":" << dvr_time.dwMinute << ":" << dvr_time.dwSecond;
+    res << 
+        std::setw(2) << (int) dvr_time.dwYear << "-" << 
+        std::setw(2) << (int) dvr_time.dwMonth << "-" << 
+        std::setw(2) << (int) dvr_time.dwDay << "T" << 
+        std::setw(2) << (int) dvr_time.dwHour << ":" << 
+        std::setw(2) << (int) dvr_time.dwMinute << ":" << 
+        std::setw(2) << (int) dvr_time.dwSecond;
     return res.str();
 }
 
