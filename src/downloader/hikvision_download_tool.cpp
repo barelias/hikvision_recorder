@@ -25,12 +25,12 @@ HikvisionDownloader::HikvisionDownloader(
 std::string NetDVRTime::str() {
     std::ostringstream res;
     res << 
-        std::setw(2) << (int) dvr_time.dwYear << "-" << 
-        std::setw(2) << (int) dvr_time.dwMonth << "-" << 
-        std::setw(2) << (int) dvr_time.dwDay << "T" << 
-        std::setw(2) << (int) dvr_time.dwHour << ":" << 
-        std::setw(2) << (int) dvr_time.dwMinute << ":" << 
-        std::setw(2) << (int) dvr_time.dwSecond;
+        std::setfill('0') << std::setw(2) << (int) dvr_time.dwYear << "-" << 
+        std::setfill('0') << std::setw(2) << (int) dvr_time.dwMonth << "-" << 
+        std::setfill('0') << std::setw(2) << (int) dvr_time.dwDay << "T" << 
+        std::setfill('0') << std::setw(2) << (int) dvr_time.dwHour << ":" << 
+        std::setfill('0') << std::setw(2) << (int) dvr_time.dwMinute << ":" << 
+        std::setfill('0') << std::setw(2) << (int) dvr_time.dwSecond;
     return res.str();
 }
 
