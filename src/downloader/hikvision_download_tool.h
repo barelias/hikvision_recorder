@@ -46,6 +46,7 @@ class HikvisionDownloader {
         ~HikvisionDownloader() { NET_DVR_Cleanup(); };
         NetDVRTime get_time_object(int year, int month, int day, int hours, int minutes, int seconds);
         std::list<VideoBlock> list_videos(NetDVRTime struStartTime, NetDVRTime struStopTime);
+        std::list<VideoBlock> download_all_videos(NetDVRTime struStartTime, NetDVRTime struStopTime);
     private:
         LONG lUserID;
         std::string user;

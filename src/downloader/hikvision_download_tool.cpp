@@ -290,3 +290,68 @@ std::list<VideoBlock> HikvisionDownloader::list_videos(NetDVRTime struStartTime,
     }
     return result_list;
 }
+
+
+std::list<VideoBlock> HikvisionDownloader::download_all_videos(NetDVRTime struStartTime, NetDVRTime struStopTime) {
+
+    NetDVRTime struStopTime_copy = struStopTime;
+    NET_DVR_FILECOND fileQuery = this->mount_file_query(struStartTime, struStopTime);
+
+    NET_DVR_FINDDATA_V30 struFileData;
+    int fileHandler = this->generate_file_handler(fileQuery);
+    std::list<VideoBlock> result_list;
+    while (true)
+    {
+        int result = NET_DVR_FindNextFile_V30(fileHandler, &struFileData);
+        if (result == NET_DVR_ISFINDING) {
+            continue;
+        }
+        else if (result == NET_DVR_FILE_SUCCESS) {   
+            VideoBlock video_block = VideoBlock(NetDVRTime(struFileData.struStartTime), NetDVRTime(struFileData.struStopTime), std::string(struFileData.sFileName));
+            result_list.push_back(video_block);
+            
+            struStartTime = NetDVRTime(
+                    struFileData.struStopTime.dwYear,
+                    struFileData.struStopTime.dwMonth,
+                    struFileData.struStopTime.dwDay,
+                    struFileData.struStopTime.dwHour,
+                    struFileData.struStopTime.dwMinute,
+                    struFileData.struStopTime.dwSecond + 1
+            );
+
+            struStopTime = NetDVRTime(
+                    struFileData.struStopTime.dwYear,
+                    struFileData.struStopTime.dwMonth,
+                    struFileData.struStopTime.dwDay,
+                    struFileData.struStopTime.dwHour,
+                    struFileData.struStopTime.dwMinute,
+                    struFileData.struStopTime.dwSecond + 10
+            );
+
+            if (struStopTime > struStopTime_copy) {
+                return result_list;
+            }
+
+            fileQuery = this->mount_file_query(struStartTime, struStopTime);
+            fileHandler = this->generate_file_handler(fileQuery);
+            this->download_block_by_name(std::string(struFileData.sFileName), std::string(struFileData.sFileName)+".mp4");
+        }
+        else if (result == NET_DVR_FILE_NOFIND || result == NET_DVR_NOMOREFILE)
+        {
+            return result_list;
+            this->get_error("no file found");
+        }
+        else
+        {
+            return result_list;
+            this->get_error("find file fail for illegal get file state");
+        }
+    }
+    //Stop searching
+    std::cout << fileHandler << std::endl;
+    if (fileHandler > 0)
+    {
+        NET_DVR_FindClose_V30(fileHandler);
+    }
+    return result_list;
+}
