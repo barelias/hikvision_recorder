@@ -8,8 +8,8 @@
 int main(int argc, char *argv[])
 {
 
+    // std::cout << argv[2] << ":" << atoi(argv[3]) << ":" << argv[4] << "@" << argv[5] << std::endl;
     HikvisionDownloader hikDownloader = HikvisionDownloader(argv[2], atoi(argv[3]), argv[4], argv[5]);
-
     if (!strcmp(argv[1], "download")) {
         NetDVRTime initTime = hikDownloader.get_time_object(atoi(argv[7]), atoi(argv[8]), atoi(argv[9]), atoi(argv[10]), atoi(argv[11]), atoi(argv[12]));
         NetDVRTime endTime = hikDownloader.get_time_object(atoi(argv[13]), atoi(argv[14]), atoi(argv[15]), atoi(argv[16]), atoi(argv[17]), atoi(argv[18]));

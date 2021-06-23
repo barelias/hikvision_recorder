@@ -171,7 +171,6 @@ NET_DVR_FILECOND HikvisionDownloader::mount_file_query(NetDVRTime struStartTime,
 int HikvisionDownloader::generate_file_handler(NET_DVR_FILECOND fileQuery) {
     //Search recording files
     NET_DVR_FILECOND fileQueryCopy = fileQuery;
-    this->login(addr, port, user, passwd);
     int lFindHandle = NET_DVR_FindFile_V30(lUserID, &fileQueryCopy);
     if (lFindHandle < 0) return get_error("find file");
     return lFindHandle;

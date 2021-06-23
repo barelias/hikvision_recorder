@@ -2,8 +2,8 @@
 #include <string>
 #include <list>
 
-#define CON_TIME 2000
-#define RECON_TIME 10000
+#define CON_TIME 20000
+#define RECON_TIME 20000
 
 typedef struct tagDownloadOutput {
 
