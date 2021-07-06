@@ -43,6 +43,7 @@ std::string VideoBlock::str() {
 int HikvisionDownloader::get_error(std::string instance){
     int error = NET_DVR_GetLastError();
     std::cout << instance << " error [" << error << "]\n";
+    if (error == 0) { error = 1; }
     throw error;
 }
 
