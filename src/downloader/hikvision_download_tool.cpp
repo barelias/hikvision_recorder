@@ -288,8 +288,8 @@ std::list<VideoBlock> HikvisionDownloader::list_videos(NetDVRTime struStartTime,
             struFileData.struStopTime.dwMinute += 1;
             struStopTime = NetDVRTime(struFileData.struStopTime);
 
-            std::cout<< struStartTime.str() << std::endl; 
-            std::cout<< struStopTime.str() << std::endl; 
+            // std::cout<< struStartTime.str() << std::endl; 
+            // std::cout<< struStopTime.str() << std::endl; 
 
             if (struStopTime_copy > struStopTime) {
                 fileQuery = this->mount_file_query(struStartTime, struStopTime);
