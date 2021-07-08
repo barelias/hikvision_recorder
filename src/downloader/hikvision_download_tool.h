@@ -12,7 +12,7 @@ typedef struct tagDownloadOutput {
 class NetDVRTime {
     public:
         NetDVRTime(int year, int month, int day, int hours, int minutes, int seconds);
-        NetDVRTime(NET_DVR_TIME dvr_time): dvr_time(dvr_time) {};
+        NetDVRTime(NET_DVR_TIME dvr_time);
         std::string str();
         void copy(NET_DVR_TIME &another);
         NET_DVR_TIME get_struct() { return this->dvr_time; }

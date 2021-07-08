@@ -70,6 +70,15 @@ NetDVRTime::NetDVRTime(int year, int month, int day, int hours, int minutes, int
     this->dvr_time.dwSecond = seconds;
 }
 
+NetDVRTime::NetDVRTime(NET_DVR_TIME tm) {
+    this->dvr_time.dwYear = tm.dwYear;
+    this->dvr_time.dwMonth = tm.dwMonth;
+    this->dvr_time.dwDay = tm.dwDay;
+    this->dvr_time.dwHour = tm.dwHour;
+    this->dvr_time.dwMinute = tm.dwMinute;
+    this->dvr_time.dwSecond = tm.dwSecond;
+}
+
 void NetDVRTime::copy(NET_DVR_TIME & tm) {
     tm.dwYear = this->dvr_time.dwYear;
     tm.dwMonth = this->dvr_time.dwMonth;
@@ -232,7 +241,6 @@ std::list<VideoBlock> HikvisionDownloader::list_videos(NetDVRTime struStartTime,
 
     NetDVRTime struStopTime_copy = struStopTime;
     NET_DVR_FILECOND fileQuery = this->mount_file_query(struStartTime, struStopTime);
-
     NET_DVR_FINDDATA_V30 struFileData;
     int fileHandler = this->generate_file_handler(fileQuery);
     std::list<VideoBlock> result_list;
@@ -274,11 +282,24 @@ std::list<VideoBlock> HikvisionDownloader::list_videos(NetDVRTime struStartTime,
         }
         else if (result == NET_DVR_FILE_NOFIND || result == NET_DVR_NOMOREFILE)
         {
+            struStartTime = NetDVRTime(struFileData.struStopTime);
+
+            struFileData.struStopTime.dwMinute += 1;
+            struStopTime = NetDVRTime(struFileData.struStopTime);
+
+            std::cout<< struStartTime.str() << std::endl; 
+            std::cout<< struStopTime.str() << std::endl; 
+
+            if (struStopTime_copy > struStopTime) {
+                fileQuery = this->mount_file_query(struStartTime, struStopTime);
+                fileHandler = this->generate_file_handler(fileQuery);
+                continue;
+            }
             return result_list;
-            this->get_error("no file found");
         }
         else
         {
+            std::cout << "illegal get file state" << std::endl;
             return result_list;
             this->get_error("find file fail for illegal get file state");
         }
