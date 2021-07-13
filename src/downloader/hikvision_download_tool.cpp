@@ -248,6 +248,7 @@ std::list<VideoBlock> HikvisionDownloader::list_videos(NetDVRTime struStartTime,
     NET_DVR_FINDDATA_V30 struFileData;
     int fileHandler = this->generate_file_handler(fileQuery);
     std::list<VideoBlock> result_list;
+    int err_num = 0;
     while (true)
     {
         int result = NET_DVR_FindNextFile_V30(fileHandler, &struFileData);
@@ -276,19 +277,45 @@ std::list<VideoBlock> HikvisionDownloader::list_videos(NetDVRTime struStartTime,
                     struFileData.struStopTime.dwSecond + 10
             );
 
+            std::cout<< struStartTime.str() << std::endl; 
+            std::cout<< struStopTime.str() << std::endl; 
+
             if (struStopTime > struStopTime_copy) {
                 return result_list;
             }
 
             fileQuery = this->mount_file_query(struStartTime, struStopTime);
-            fileHandler = this->generate_file_handler(fileQuery);
+            try {
+                fileHandler = this->generate_file_handler(fileQuery);
+            } catch (int exc) {
+                struStartTime = NetDVRTime(struFileData.struStopTime);
 
+                struFileData.struStopTime.dwMinute += 1 + err_num;
+                struStopTime = NetDVRTime(struFileData.struStopTime);
+
+                // std::cout<< struStartTime.str() << std::endl; 
+                // std::cout<< struStopTime.str() << std::endl; 
+
+                if (struStopTime_copy > struStopTime) {
+                    fileQuery = this->mount_file_query(struStartTime, struStopTime);
+                    fileHandler = this->generate_file_handler(fileQuery);
+                    err_num++;
+                    continue;
+                }
+                return result_list;
+
+            }
+            err_num = 0;
         }
         else if (result == NET_DVR_FILE_NOFIND || result == NET_DVR_NOMOREFILE)
         {
             struStartTime = NetDVRTime(struFileData.struStopTime);
 
-            struFileData.struStopTime.dwMinute += 1;
+            struFileData.struStopTime.dwMinute += 1 + err_num;
+            if (struFileData.struStopTime.dwMinute >= 60) {
+                struFileData.struStopTime.dwHour += (int) struFileData.struStopTime.dwMinute/60;
+                struFileData.struStopTime.dwMinute = struFileData.struStopTime.dwMinute%60; 
+            }
             struStopTime = NetDVRTime(struFileData.struStopTime);
 
             // std::cout<< struStartTime.str() << std::endl; 
@@ -297,6 +324,7 @@ std::list<VideoBlock> HikvisionDownloader::list_videos(NetDVRTime struStartTime,
             if (struStopTime_copy > struStopTime) {
                 fileQuery = this->mount_file_query(struStartTime, struStopTime);
                 fileHandler = this->generate_file_handler(fileQuery);
+                err_num++;
                 continue;
             }
             return result_list;
