@@ -97,7 +97,7 @@ NetDVRTime HikvisionDownloader::get_time_object(int year, int month, int day, in
 int HikvisionDownloader::setup_playback_by_name(std::string src, std::string dst) {
     int hPlayback = 0;
     if ((hPlayback = NET_DVR_GetFileByName(this->lUserID, (char*) src.c_str(), (char*) dst.c_str())) < 0)
-        return this->get_error("setup_playback");
+        return this->get_error("setup_playback_name");
     return hPlayback;
 }
 
@@ -133,9 +133,12 @@ int HikvisionDownloader::setup_playback_by_time(NetDVRTime struStartTime, NetDVR
         std::cout << "found block and downloading whole named block" << std::endl;
         return this->setup_playback_by_name((char*) block.get_name().c_str(), (char*) dst.c_str());
     }
-    if ((hPlayback = NET_DVR_GetFileByTime(lUserID, 1, &sttime, &stoptime, (char*) dst.c_str())) < 0)
-        std::cout << "block not found and downloading by time" << std::endl;
-        return this->get_error("setup_playback");
+    hPlayback = NET_DVR_GetFileByTime(lUserID, 1, &sttime, &stoptime, (char*) dst.c_str());
+    
+    if (hPlayback <= -1) {
+        std::cout << hPlayback << " block not found and downloading by time" << std::endl;
+        return this->get_error("setup_playback_time");
+    }
     return hPlayback;
 }
 
