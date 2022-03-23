@@ -266,44 +266,26 @@ VideoBlock HikvisionDownloader::find_named_block(NetDVRTime struStartTime, NetDV
 std::list<VideoBlock> HikvisionDownloader::list_videos(NetDVRTime struStartTime, NetDVRTime struStopTime)
 {
 
-    NetDVRTime struStopTime_copy = struStopTime;
     NET_DVR_FILECOND fileQuery = this->mount_file_query(struStartTime, struStopTime);
     NET_DVR_FINDDATA_V30 struFileData;
     int fileHandler = this->generate_file_handler(fileQuery);
     std::list<VideoBlock> result_list;
     int err_num = 0;
+    int finding_count = 0;
     while (true)
     {
 
-        std::cout.setstate(std::ios::failbit);
-        struStartTime = NetDVRTime(
-            struFileData.struStopTime.dwYear,
-            struFileData.struStopTime.dwMonth,
-            struFileData.struStopTime.dwDay,
-            struFileData.struStopTime.dwHour,
-            struFileData.struStopTime.dwMinute,
-            struFileData.struStopTime.dwSecond + 1);
-
-        struStopTime = NetDVRTime(
-            struFileData.struStopTime.dwYear,
-            struFileData.struStopTime.dwMonth,
-            struFileData.struStopTime.dwDay,
-            struFileData.struStopTime.dwHour,
-            struFileData.struStopTime.dwMinute,
-            struFileData.struStopTime.dwSecond + 10);
-
-        std::cout << "loop beggining" << std::endl;
-
-        std::cout << struStartTime.str() << std::endl;
-        std::cout << struStopTime.str() << std::endl;
+        // std::cout << "loop beggining" << std::endl;
         int result = NET_DVR_FindNextFile_V30(fileHandler, &struFileData);
         if (result == NET_DVR_ISFINDING)
         {
             std::cout << "finding" << std::endl;
+            finding_count += 1;
             continue;
         }
         else if (result == NET_DVR_FILE_SUCCESS)
         {
+            finding_count = 0;
             std::cout << "success" << std::endl;
 
             VideoBlock video_block = VideoBlock(NetDVRTime(struFileData.struStartTime), NetDVRTime(struFileData.struStopTime), std::string(struFileData.sFileName));
@@ -317,23 +299,11 @@ std::list<VideoBlock> HikvisionDownloader::list_videos(NetDVRTime struStartTime,
                 struFileData.struStopTime.dwMinute,
                 struFileData.struStopTime.dwSecond + 1);
 
-            struStopTime = NetDVRTime(
-                struFileData.struStopTime.dwYear,
-                struFileData.struStopTime.dwMonth,
-                struFileData.struStopTime.dwDay,
-                struFileData.struStopTime.dwHour,
-                struFileData.struStopTime.dwMinute,
-                struFileData.struStopTime.dwSecond + 10);
-
-            std::cout.setstate(std::ios::failbit);
             std::cout << struStartTime.str() << std::endl;
-            std::cout << struStopTime.str() << std::endl;
-            std::cout.clear();
-            std::cout.setstate(std::ios::failbit);
 
-            if (struStopTime > struStopTime_copy)
+            if (struStartTime > struStopTime)
             {
-                std::cout.clear();
+
                 return result_list;
             }
 
@@ -344,22 +314,27 @@ std::list<VideoBlock> HikvisionDownloader::list_videos(NetDVRTime struStartTime,
             }
             catch (int exc)
             {
-                struStartTime = NetDVRTime(struFileData.struStopTime);
+                std::cout << "err" << std::endl;
 
-                struFileData.struStopTime.dwMinute += 1 + err_num;
-                struStopTime = NetDVRTime(struFileData.struStopTime);
+                struStartTime = NetDVRTime(
+                    struFileData.struStopTime.dwYear,
+                    struFileData.struStopTime.dwMonth,
+                    struFileData.struStopTime.dwDay,
+                    struFileData.struStopTime.dwHour,
+                    struFileData.struStopTime.dwMinute + 1,
+                    struFileData.struStopTime.dwSecond);
 
                 std::cout << struStartTime.str() << std::endl;
                 std::cout << struStopTime.str() << std::endl;
 
-                if (struStopTime_copy > struStopTime)
+                if (struStartTime > struStopTime)
                 {
                     fileQuery = this->mount_file_query(struStartTime, struStopTime);
                     fileHandler = this->generate_file_handler(fileQuery);
                     err_num++;
                     continue;
                 }
-                std::cout.clear();
+
                 return result_list;
             }
             err_num = 0;
@@ -368,38 +343,45 @@ std::list<VideoBlock> HikvisionDownloader::list_videos(NetDVRTime struStartTime,
         {
             std::cout << "not found" << std::endl;
 
-            struStartTime = NetDVRTime(struFileData.struStopTime);
+            int minutes, hours;
+            minutes = struFileData.struStartTime.dwMinute + 1 + err_num;
+            hours = struFileData.struStartTime.dwHour;
 
-            struFileData.struStopTime.dwMinute += 1 + err_num;
-            if (struFileData.struStopTime.dwMinute >= 60)
+            if (minutes >= 60)
             {
-                struFileData.struStopTime.dwHour += (int)struFileData.struStopTime.dwMinute / 60;
-                struFileData.struStopTime.dwMinute = struFileData.struStopTime.dwMinute % 60;
+                hours = hours + (int)minutes / 60;
+                minutes = minutes % 60;
             }
-            struStopTime = NetDVRTime(struFileData.struStopTime);
+
+            struStartTime = NetDVRTime(
+                struFileData.struStopTime.dwYear,
+                struFileData.struStopTime.dwMonth,
+                struFileData.struStopTime.dwDay,
+                struFileData.struStopTime.dwHour,
+                minutes,
+                hours);
 
             std::cout << struStartTime.str() << std::endl;
-            std::cout << struStopTime.str() << std::endl;
 
-            if (struStopTime_copy > struStopTime)
+            if (struStartTime > struStopTime)
             {
                 fileQuery = this->mount_file_query(struStartTime, struStopTime);
                 fileHandler = this->generate_file_handler(fileQuery);
                 err_num++;
                 continue;
             }
-            std::cout.clear();
+
             return result_list;
         }
         else
         {
-            std::cout.clear();
+
             std::cout << "illegal get file state" << std::endl;
             return result_list;
             this->get_error("find file fail for illegal get file state");
         }
     }
-    std::cout.clear();
+
     // Stop searching
     std::cout << fileHandler << std::endl;
     if (fileHandler > 0)
