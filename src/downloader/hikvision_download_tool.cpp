@@ -2,6 +2,7 @@
 #include "incEn/HCNetSDK.h"
 #include <stdio.h>
 #include <string>
+#include <string.h>
 #include <unistd.h>
 #include <iostream>
 #include <sstream>
@@ -18,6 +19,8 @@ HikvisionDownloader::HikvisionDownloader(
     this->port = port;
     this->user = user;
     this->passwd = passwd;
+    this->struDeviceInfo = {0};
+    this->struLoginInfo = {0};
     this->setup();
     this->login(addr, port, user, passwd);
 }
@@ -56,10 +59,19 @@ void HikvisionDownloader::setup()
 
 LONG HikvisionDownloader::login(std::string addr, int port, std::string user, std::string passwd)
 {
-    this->lUserID = NET_DVR_Login_V30((char *)addr.c_str(), port, (char *)user.c_str(), (char *)passwd.c_str(), &this->struDeviceInfo);
+
+    this->struLoginInfo.bUseAsynLogin = 0;                            // Synchronous login mode
+    strcpy(this->struLoginInfo.sDeviceAddress, (char *)addr.c_str()); // IP address
+    this->struLoginInfo.wPort = port;                                 // Service port
+    strcpy(this->struLoginInfo.sUserName, (char *)user.c_str());      // User name
+    strcpy(this->struLoginInfo.sPassword, (char *)passwd.c_str());    // Password
+
+    this->lUserID = NET_DVR_Login_V40(&(this->struLoginInfo), &(this->struDeviceInfo));
+
     if (lUserID < 0)
     {
         int error = get_error("login");
+        NET_DVR_Cleanup();
         return error;
     }
     return this->lUserID;
@@ -138,6 +150,8 @@ int HikvisionDownloader::setup_playback_by_time(NetDVRTime struStartTime, NetDVR
     int hPlayback = 0;
     NET_DVR_TIME sttime = struStartTime.get_struct();
     NET_DVR_TIME stoptime = struStopTime.get_struct();
+    std::cout << "Setupping" << std::endl;
+
     VideoBlock block = this->find_named_block(struStartTime, struStopTime);
     VideoBlock block_to_compare = VideoBlock(NetDVRTime(sttime), NetDVRTime(stoptime));
 
@@ -146,7 +160,12 @@ int HikvisionDownloader::setup_playback_by_time(NetDVRTime struStartTime, NetDVR
         std::cout << "found block and downloading whole named block" << std::endl;
         return this->setup_playback_by_name((char *)block.get_name().c_str(), (char *)dst.c_str());
     }
-    hPlayback = NET_DVR_GetFileByTime(lUserID, 1, &sttime, &stoptime, (char *)dst.c_str());
+
+    NET_DVR_PLAYCOND struFileCond = {0};
+    struFileCond.struStartTime = struStartTime.get_struct();
+    struFileCond.struStopTime = struStopTime.get_struct();
+
+    hPlayback = NET_DVR_GetFileByTime_V40(lUserID, (char *)dst.c_str(), &struFileCond);
 
     if (hPlayback <= -1)
     {
@@ -170,7 +189,8 @@ int HikvisionDownloader::download_block_by_time(NetDVRTime struStartTime, NetDVR
 
 int HikvisionDownloader::record_playback(int playback)
 {
-    if (!NET_DVR_PlayBackControl(playback, NET_DVR_PLAYSTART, 0, NULL))
+
+    if (!NET_DVR_PlayBackControl_V40(playback, NET_DVR_PLAYSTART, NULL, 0, NULL, NULL))
         return this->get_error("playback_control");
 
     int nPos = 0;
@@ -222,11 +242,11 @@ VideoBlock HikvisionDownloader::find_named_block(NetDVRTime struStartTime, NetDV
     // print_time_structure(fileQuery.struStartTime);
     // print_time_structure(fileQuery.struStopTime);
 
-    NET_DVR_FINDDATA_V30 struFileData;
+    NET_DVR_FINDDATA_V40 struFileData;
     int fileHandler = this->generate_file_handler(fileQuery);
     while (true)
     {
-        int result = NET_DVR_FindNextFile_V30(fileHandler, &struFileData);
+        int result = NET_DVR_FindNextFile_V40(fileHandler, &struFileData);
         if (result == NET_DVR_ISFINDING)
         {
             continue;
@@ -267,7 +287,7 @@ std::list<VideoBlock> HikvisionDownloader::list_videos(NetDVRTime struStartTime,
 {
 
     NET_DVR_FILECOND fileQuery = this->mount_file_query(struStartTime, struStopTime);
-    NET_DVR_FINDDATA_V30 struFileData;
+    NET_DVR_FINDDATA_V40 struFileData;
     int fileHandler = this->generate_file_handler(fileQuery);
     std::list<VideoBlock> result_list;
     int err_num = 0;
@@ -276,11 +296,42 @@ std::list<VideoBlock> HikvisionDownloader::list_videos(NetDVRTime struStartTime,
     {
 
         // std::cout << "loop beggining" << std::endl;
-        int result = NET_DVR_FindNextFile_V30(fileHandler, &struFileData);
+        int result = NET_DVR_FindNextFile_V40(fileHandler, &struFileData);
         if (result == NET_DVR_ISFINDING)
         {
-            std::cout << "finding" << std::endl;
             finding_count += 1;
+
+            if (finding_count > 100)
+            {
+                finding_count = 0;
+                int seconds, minutes, hours;
+                seconds = struFileData.struStartTime.dwSecond + finding_count;
+                minutes = struFileData.struStartTime.dwMinute;
+                hours = struFileData.struStartTime.dwHour;
+
+                if (seconds >= 60)
+                {
+                    minutes = minutes + (int)seconds / 60;
+                    seconds = seconds % 60;
+                }
+
+                if (minutes >= 60)
+                {
+                    hours = hours + (int)minutes / 60;
+                    minutes = minutes % 60;
+                }
+
+                struStartTime = NetDVRTime(
+                    struFileData.struStopTime.dwYear,
+                    struFileData.struStopTime.dwMonth,
+                    struFileData.struStopTime.dwDay,
+                    struFileData.struStopTime.dwHour,
+                    minutes,
+                    hours);
+
+                fileQuery = this->mount_file_query(struStartTime, struStopTime);
+                fileHandler = this->generate_file_handler(fileQuery);
+            }
             continue;
         }
         else if (result == NET_DVR_FILE_SUCCESS)
@@ -334,7 +385,6 @@ std::list<VideoBlock> HikvisionDownloader::list_videos(NetDVRTime struStartTime,
                     err_num++;
                     continue;
                 }
-
                 return result_list;
             }
             err_num = 0;
