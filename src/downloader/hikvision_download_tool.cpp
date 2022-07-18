@@ -45,7 +45,7 @@ int HikvisionDownloader::get_error(std::string instance)
     std::cout << instance << " error [" << error << "]\n";
     if (error == 0)
     {
-        error = 1;
+        error = 404;
     }
     throw error;
 }
